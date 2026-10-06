@@ -1,0 +1,26 @@
+# Example suite. Replace brand.id with a real Bloom brand session ID.
+brand:
+  id: "00000000-0000-0000-0000-000000000000"
+  # Optional: if omitted, bloom-eval tries to read hex colours from the Brand Skill snapshot.
+  palette: ["#0B3D2E", "#F4E9D8"]
+  # Optional: local reference logo (path relative to this file) for the logo check.
+  logo: assets/logo.png
+
+samples: 3        # independent generations per task (variance is real; don't use 1)
+size: 2K          # 2K = 1 credit, 4K = 2 credits (per Bloom docs)
+checks: [color, text, logo]
+
+# Optional threshold overrides
+color: { de_threshold: 12, max_off_palette: 0.35, min_coverage: 0.25 }
+text: { min_ratio: 0.95 }
+logo_opts: { min_inliers: 10, max_distortion: 1.15 }
+
+tasks:
+  - id: launch-hero
+    prompt: "Launch hero for our new coffee subscription. Headline: Meet your morning"
+    aspect_ratio: "16:9"
+    expected_text: "Meet your morning"
+  - id: square-ad
+    prompt: "Square social ad, product shot on a warm background. Headline: Fresh every week"
+    aspect_ratio: "1:1"
+    expected_text: "Fresh every week"

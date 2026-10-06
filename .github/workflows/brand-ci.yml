@@ -1,0 +1,27 @@
+name: brand-ci
+# Gate brand/prompt changes on measured quality. Needs repo secret BLOOM_API_KEY.
+# Costs credits: keep samples small on PRs, larger on a nightly schedule.
+on:
+  pull_request:
+    paths: ["suite.yaml", "bloom-evals/**"]
+  workflow_dispatch:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+      - run: pip install ".[vision]"
+      - name: Candidate run
+        env: { BLOOM_API_KEY: ${{ secrets.BLOOM_API_KEY }} }
+        run: bloom-eval run suite.yaml --out runs --yes
+      - name: Compare against committed baseline
+        run: |
+          CAND=$(ls -d runs/* | tail -1)
+          bloom-eval compare baseline/ "$CAND"   # exit 1 on statistically significant regression
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: brand-ci-report, path: runs/ }
